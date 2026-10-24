@@ -4,7 +4,7 @@ Browser softphone and call CRM for small sales teams, with in-browser transcript
 
 ![The Dial page during a call: the queue, a per-lead call guide, and the live call panel](docs/screenshots/dialer.png)
 
-Live demo: _coming soon_
+**Live demo:** [saqlain-489.github.io/dialdesk](https://saqlain-489.github.io/dialdesk/). Demo mode: fictional data, and no calls are placed.
 
 ## What it does
 
