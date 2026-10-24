@@ -1,0 +1,1424 @@
+/* Dark is the default: callers often work long evening shifts, so a bright screen for
+   eight hours is the wrong default even though light mode is available. Every colour is a token —
+   nothing below this block hardcodes a hex, which is what makes one toggle work. */
+:root,
+:root[data-theme='dark'] {
+  --bg: #0f1115;
+  --surface: #171a21;
+  --surface-2: #1e222b;
+  --surface-3: #252a35;
+  --border: #2a2f3a;
+  --border-strong: #3a4150;
+  --text: #e6e8ec;
+  --muted: #8b93a3;
+  --accent: #4c8dff;
+  --accent-text: #ffffff;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --red: #f85149;
+  --purple: #a371f7;
+
+  --hook-text: #f0d79a;
+  --hook-rule: var(--yellow);
+  --error-bg: rgba(248, 81, 73, 0.12);
+  --error-text: #ffb3ae;
+  --ok-bg: rgba(63, 185, 80, 0.1);
+  --ok-text: #8ee79b;
+  --tint-green: rgba(63, 185, 80, 0.4);
+  --tint-yellow: rgba(210, 153, 34, 0.4);
+  --tint-red: rgba(248, 81, 73, 0.4);
+  --tint-purple: rgba(163, 113, 247, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --backdrop: rgba(0, 0, 0, 0.45);
+  --mark: rgba(210, 153, 34, 0.35);
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --surface-3: #e2e7ee;
+  --border: #d6dce5;
+  --border-strong: #b8c2d0;
+  --text: #131720;
+  --muted: #5d6779;
+  --accent: #1f6feb;
+  --accent-text: #ffffff;
+  --green: #1a7f37;
+  --yellow: #9a6700;
+  --red: #cf222e;
+  --purple: #7b3ff2;
+
+  /* The dark theme's hook colour is a pale gold that vanishes on white, so light mode
+     needs a genuinely different value rather than a tweaked opacity. */
+  --hook-text: #6b4e00;
+  --hook-rule: #d4a72c;
+  --error-bg: #fff1f0;
+  --error-text: #a40e26;
+  --ok-bg: #eaf7ec;
+  --ok-text: #12602a;
+  --tint-green: rgba(26, 127, 55, 0.35);
+  --tint-yellow: rgba(154, 103, 0, 0.35);
+  --tint-red: rgba(207, 34, 46, 0.35);
+  --tint-purple: rgba(123, 63, 242, 0.35);
+  --shadow: 0 1px 2px rgba(16, 22, 35, 0.08);
+  --backdrop: rgba(16, 22, 35, 0.3);
+  --mark: rgba(255, 196, 0, 0.4);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 7px 12px;
+  transition: border-color 0.12s, background 0.12s;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+button.danger {
+  /* Outlined rather than filled: a solid red block repeated down a list of hundreds
+     of leads reads as an error state and pulls the eye to the destructive action
+     instead of the lead. It fills in on hover, when intent is clear. */
+  background: transparent;
+  border-color: var(--tint-red);
+  color: var(--red);
+  font-weight: 600;
+}
+button.danger:hover:not(:disabled) {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--accent-text);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  width: 100%;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+a {
+  color: var(--accent);
+}
+
+/* --- layout --- */
+.app {
+  height: 100vh;
+  /* dvh tracks the iOS toolbar showing and hiding; plain vh hides the bottom of the page under it. */
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.topbar h1 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 600;
+}
+.topbar .spacer {
+  flex: 1;
+}
+
+.dialer {
+  flex: 1;
+  /* Without min-height:0 a flex item refuses to shrink below its content, so this
+     grid grows past the viewport, the body scrolls instead, and the per-column
+     overflow-y below never gets a constrained height to scroll inside. */
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--sidebar-width, 300px) 6px minmax(0, 1fr) 320px;
+  overflow: hidden;
+}
+
+/* Each column is its own scroll container. minmax(0, …) on the middle track stops
+   long unbreakable script lines from widening the grid and scrolling the page
+   sideways. */
+.dialer > * {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.pane {
+  padding: 14px;
+}
+
+/* Border only between actual columns — panes stacked inside one column get a
+   horizontal rule instead of a vertical one. */
+.dialer > .pane + .pane,
+.dialer > .pane-stack + .pane {
+  border-left: 1px solid var(--border);
+}
+
+.pane-stack > .pane + .pane {
+  border-top: 1px solid var(--border);
+}
+
+/* The drag handle between the sidebar and the script column. */
+.col-resizer {
+  cursor: col-resize;
+  background: var(--border);
+  overflow: hidden;
+  transition: background 0.12s;
+}
+.col-resizer:hover,
+.col-resizer.dragging {
+  background: var(--accent);
+}
+
+/* While dragging, kill text selection and force the resize cursor everywhere —
+   otherwise the pointer flickers as it crosses panes and drags selects text. */
+body.resizing-columns {
+  cursor: col-resize;
+  user-select: none;
+}
+.pane h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+/* --- call window banner --- */
+.banner {
+  padding: 9px 14px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.banner.closed {
+  background: var(--error-bg);
+  border-bottom: 1px solid var(--red);
+  color: var(--error-text);
+}
+.banner.open {
+  background: var(--ok-bg);
+  border-bottom: 1px solid var(--tint-green);
+  color: var(--ok-text);
+}
+
+/* --- queue --- */
+.queue-item {
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.queue-item:hover {
+  border-color: var(--accent);
+}
+.queue-item.active {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+.queue-item .name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.queue-item .meta {
+  color: var(--muted);
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* --- lead card --- */
+.lead-card h3 {
+  margin: 0 0 2px;
+  font-size: 22px;
+}
+.lead-phone {
+  font-size: 18px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 12px;
+}
+.card-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.card-section h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.hook {
+  border-left: 3px solid var(--hook-rule);
+  padding-left: 10px;
+  color: var(--hook-text);
+}
+.issue-list {
+  margin: 0;
+  padding-left: 18px;
+}
+.issue-list li {
+  margin-bottom: 3px;
+}
+.kv {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+.kv dt {
+  color: var(--muted);
+}
+.kv dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+/* --- call panel --- */
+.call-status {
+  text-align: center;
+  padding: 16px 0;
+}
+.call-phase {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.call-timer {
+  font-size: 34px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 300;
+  margin: 4px 0;
+}
+.call-phase.connected {
+  color: var(--green);
+}
+.call-phase.ringing {
+  color: var(--yellow);
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+}
+.btn-row > * {
+  flex: 1;
+}
+
+.disposition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.disposition-grid button {
+  text-align: left;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+.disposition-grid button .key {
+  display: inline-block;
+  min-width: 16px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.disposition-grid button.primary .key {
+  color: inherit;
+}
+.other-outcome {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+.note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.note-error {
+  color: var(--red);
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.badge.green {
+  color: var(--green);
+  border-color: var(--tint-green);
+}
+.badge.yellow {
+  color: var(--yellow);
+  border-color: var(--tint-yellow);
+}
+.badge.red {
+  color: var(--red);
+  border-color: var(--tint-red);
+}
+.badge.purple {
+  color: var(--purple);
+  border-color: var(--tint-purple);
+}
+
+.error-box {
+  background: var(--error-bg);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: var(--error-text);
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.notice {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  color: var(--muted);
+}
+
+/* --- login --- */
+.login-wrap {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.login-box {
+  width: min(320px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+}
+.login-box h1 {
+  margin: 0 0 18px;
+  font-size: 18px;
+}
+.login-box label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+.login-box .field {
+  margin-bottom: 12px;
+}
+
+/* --- admin --- */
+.page,
+.admin,
+.setup {
+  /* Same flex trap as .dialer: without flex:1 + min-height:0 these size to their
+     content, the whole page scrolls, and the topbar scrolls out of reach. */
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.stat .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.stat .value {
+  font-size: 26px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.bar {
+  height: 6px;
+  background: var(--accent);
+  border-radius: 3px;
+  min-width: 2px;
+}
+
+.muted {
+  color: var(--muted);
+}
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.stack > * + * {
+  margin-top: 10px;
+}
+
+
+/* --- lead listing rows --- */
+/* A grid, not a wrapping flex row: with flex the action buttons landed at a
+   different x on every row because they were pushed by however wide the name and
+   badges happened to be. A fixed action track makes Archive/Delete line up down
+   the whole list, which is what makes a long list scannable. */
+.lead-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'info actions'
+    'meta actions';
+  gap: 2px 14px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  margin-bottom: 6px;
+}
+.lead-row:hover {
+  border-color: var(--border-strong);
+}
+.lead-row.is-archived {
+  opacity: 0.62;
+}
+.lead-row .lead-info {
+  grid-area: info;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.lead-row .lead-info .lead-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.lead-row .lead-meta {
+  grid-area: meta;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.lead-row .lead-actions {
+  grid-area: actions;
+  display: flex;
+  gap: 6px;
+  justify-self: end;
+}
+.lead-row .lead-actions button {
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+/* --- pagination --- */
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.pager .pager-info {
+  color: var(--muted);
+  font-size: 12px;
+}
+.pager .spacer {
+  flex: 1;
+}
+.pager button {
+  padding: 5px 10px;
+}
+.pager select {
+  width: auto;
+  padding: 5px 8px;
+}
+
+/* --- theme toggle --- */
+.theme-toggle {
+  padding: 6px 10px;
+  line-height: 1;
+}
+
+/* --- workspace switcher (owner only) --- */
+.workspace-switcher {
+  width: auto;
+  max-width: 180px;
+  padding: 5px 8px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+
+/* --- page shell (Leads / Metrics / Transcripts / Import) --- */
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.page-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.page-head .spacer {
+  flex: 1;
+}
+.page-intro {
+  margin: 0 0 18px;
+  font-size: 13px;
+  max-width: 68ch;
+}
+/* Import is a single short form; letting it span a 2000px monitor makes the drop
+   target absurdly wide and the copy unreadable. */
+.page-narrow {
+  max-width: 720px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+}
+
+/* --- import dropzone --- */
+.dropzone {
+  border: 2px dashed var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 34px 20px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover,
+.dropzone:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.dropzone.is-dragging {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+.dropzone.is-busy {
+  cursor: progress;
+  opacity: 0.75;
+}
+.dropzone-icon {
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+.dropzone-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+code {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12.5px;
+}
+
+/* The filter controls are authored for the 300px dialer sidebar, so they stack. On a
+   full-width page that leaves a column of lonely dropdowns and pushes the list far
+   down, so the same component reflows into a grid here. */
+.filter-bar > .stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: start;
+  gap: 8px;
+}
+.filter-bar > .stack > * + * {
+  margin-top: 0;
+}
+/* The view toggle (up to four buttons) spills over the next control in one 180px cell. */
+.filter-bar > .stack > input,
+.filter-bar > .stack > .btn-row {
+  grid-column: 1 / -1;
+}
+
+.inbound-short {
+  display: none;
+}
+
+/* --- phone call bar (rendered only on narrow screens) --- */
+.call-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-top: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+}
+.call-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.call-bar-info {
+  flex: 1;
+  min-width: 0;
+}
+.call-bar-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.call-bar-status {
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.call-bar button {
+  min-height: 44px;
+  padding: 8px 14px;
+}
+.call-bar button.primary {
+  min-width: 112px;
+}
+.call-bar-warning {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* --- metrics: who called us back --- */
+.stat-toggle {
+  text-align: left;
+  color: var(--text);
+  background: var(--surface);
+  padding: 14px;
+  border-radius: 8px;
+}
+.stat-toggle.is-open {
+  border-color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.stat-toggle-hint {
+  float: right;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--accent);
+}
+.callbacks-panel {
+  margin-bottom: 20px;
+}
+.callbacks-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.callbacks-head h4 {
+  margin: 0;
+}
+.callbacks-head .spacer {
+  flex: 1;
+}
+.callbacks-table th.th-plain {
+  padding: 7px 10px;
+}
+.callbacks-table col.cb-when {
+  width: 150px;
+}
+.callbacks-table col.cb-who {
+  width: 22%;
+}
+.callbacks-table col.cb-handled {
+  width: 150px;
+}
+.callbacks-table col.cb-length {
+  width: 72px;
+}
+.callbacks-table col.cb-before {
+  width: 180px;
+}
+.callbacks-table col.cb-status {
+  width: 104px;
+}
+.callbacks-table td.cb-when {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cell-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.cb-status .badge + .badge {
+  margin-left: 4px;
+}
+
+/* --- transcripts table + reading drawer --- */
+.transcript-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.transcript-toolbar .toolbar-search {
+  grid-column: 1 / -1;
+}
+.transcript-toolbar .toolbar-sort {
+  display: none;
+}
+
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: opacity 0.15s;
+}
+.table-wrap.is-loading {
+  opacity: 0.6;
+}
+.data-table {
+  table-layout: fixed;
+}
+.data-table th {
+  background: var(--surface-2);
+  white-space: nowrap;
+  padding: 0;
+}
+.data-table th:first-child {
+  border-top-left-radius: 8px;
+}
+.data-table th:last-child {
+  border-top-right-radius: 8px;
+  padding: 7px 10px;
+}
+.data-table td {
+  vertical-align: top;
+  padding: 10px;
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr {
+  cursor: pointer;
+}
+.data-table tbody tr:hover {
+  background: var(--surface-2);
+}
+.data-table tbody tr.is-open {
+  background: var(--surface-3);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.data-table tbody tr:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.data-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sort-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 10px;
+  cursor: pointer;
+  color: inherit;
+}
+.num .sort-btn {
+  justify-content: flex-end;
+}
+.sort-btn:hover,
+.sort-btn.is-sorted {
+  color: var(--text);
+}
+.sort-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.sort-arrow {
+  font-size: 9px;
+  opacity: 0.5;
+}
+.sort-btn.is-sorted .sort-arrow {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.transcripts-table col.col-when {
+  width: 130px;
+}
+.transcripts-table col.col-business {
+  width: 24%;
+}
+.transcripts-table col.col-caller {
+  width: 92px;
+}
+.transcripts-table col.col-attempt {
+  width: 52px;
+}
+.transcripts-table col.col-length {
+  width: 76px;
+}
+.transcripts-table col.col-outcome {
+  width: 150px;
+}
+.transcripts-table td.col-when {
+  white-space: nowrap;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.cell-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell-sub {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell-snippet {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--muted);
+}
+.snippet-speaker {
+  color: var(--text);
+  font-weight: 600;
+}
+.col-outcome .badge,
+.col-said .badge {
+  white-space: normal;
+}
+mark {
+  background: var(--mark);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.skeleton {
+  display: block;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+.table-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--backdrop);
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 31;
+  width: min(600px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+}
+.drawer-head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.drawer-title {
+  flex: 1;
+  min-width: 0;
+}
+.drawer-title h3 {
+  margin: 0;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.drawer-close {
+  padding: 4px 10px;
+  line-height: 1.2;
+}
+.drawer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.drawer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.drawer-actions .spacer {
+  flex: 1;
+}
+.drawer-actions button {
+  padding: 5px 10px;
+  font-size: 13px;
+}
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+.drawer-summary {
+  margin: 0 0 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-foot {
+  padding: 10px 18px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bubble-row {
+  display: flex;
+}
+.bubble-row.ours {
+  justify-content: flex-end;
+}
+.bubble {
+  max-width: 85%;
+  padding: 7px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  overflow-wrap: anywhere;
+}
+.bubble-row.ours .bubble {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+.bubble-meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.conversation-raw {
+  white-space: pre-wrap;
+  font: inherit;
+  margin: 0;
+}
+.drawer-lead-status {
+  margin-bottom: 10px;
+}
+.drawer-body .lead-card {
+  padding: 0;
+}
+/* The drawer header already shows the business name and phone. */
+.drawer-body .lead-card > h3,
+.drawer-body .lead-card > .lead-phone {
+  display: none;
+}
+
+/* --- phones and narrow tablets (keep in sync with NARROW_QUERY in lib/platform.ts) --- */
+@media (max-width: 820px) {
+  .topbar {
+    gap: 8px;
+    padding: 6px 10px;
+    padding-top: max(6px, env(safe-area-inset-top));
+  }
+  .topbar h1,
+  .topbar .user-label,
+  .topbar .spacer {
+    display: none;
+  }
+  /* Six admin tabs don't fit a phone; they scroll sideways in one row instead of wrapping. */
+  .topbar .tabs {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .topbar .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .topbar .tabs button {
+    flex: 0 0 auto;
+  }
+  .workspace-switcher {
+    max-width: 110px;
+    min-height: 36px;
+    font-size: 16px;
+  }
+  .topbar button {
+    min-height: 36px;
+    padding: 5px 10px;
+  }
+
+  /* iOS zooms the page into any focused field under 16px and never zooms back out. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  button {
+    min-height: 40px;
+  }
+
+  .banner {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+  /* Every pixel above the script is one less line of script during a call. */
+  .inbound-long {
+    display: none;
+  }
+  .inbound-short {
+    display: inline;
+  }
+  .inbound-idle button {
+    min-height: 30px;
+    padding: 3px 10px;
+    font-size: 12px;
+  }
+
+  .dial-switcher {
+    display: flex;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .dial-switcher button {
+    flex: 1;
+    min-height: 36px;
+    padding: 4px;
+    font-size: 13px;
+  }
+
+  /* One scroll container for whichever view is showing; the call bar floats over its bottom. */
+  .dialer {
+    display: block;
+    overflow-y: auto;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+  .dialer > * {
+    overflow: visible;
+  }
+  .dialer > .pane + .pane,
+  .dialer > .pane-stack + .pane {
+    border-left: 0;
+  }
+  .pane-stack > .pane + .pane {
+    border-top: 0;
+  }
+  .col-resizer {
+    display: none;
+  }
+  .dialer[data-view='queue'] > :not(.queue-pane),
+  .dialer[data-view='script'] > :not(.pane-stack, .empty-pane),
+  .dialer[data-view='script'] .lead-card,
+  .dialer[data-view='lead'] > :not(.pane-stack, .empty-pane),
+  .dialer[data-view='lead'] .script-pane,
+  .dialer[data-view='call'] > :not(.call-pane) {
+    display: none;
+  }
+
+  /* The call bar carries Call / Mute / Hang up, and there is no keyboard to take shortcuts. */
+  .call-pane .call-actions,
+  .call-pane .kbd-hint {
+    display: none;
+  }
+  .call-timer {
+    font-size: 28px;
+  }
+  .queue-item {
+    padding: 12px;
+  }
+  .disposition-grid button {
+    min-height: 44px;
+  }
+  .lead-card h3 {
+    font-size: 19px;
+  }
+
+  .page,
+  .admin,
+  .setup {
+    padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
+  }
+  .stat-row:has(> .card-section) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stat .value {
+    font-size: 22px;
+  }
+  .card-section {
+    overflow-x: auto;
+  }
+  th,
+  td {
+    padding: 6px 8px;
+  }
+  /* A date split as "2026-" / "10-02" reads as two values. */
+  td.mono {
+    white-space: nowrap;
+  }
+
+  /* The view toggle is three buttons wide; in a 180px grid cell it spilled under the next control. */
+  .filter-bar > .stack {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lead-row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'info'
+      'meta'
+      'actions';
+  }
+  .lead-row .lead-actions {
+    justify-self: stretch;
+    margin-top: 6px;
+  }
+  .lead-row .lead-actions button {
+    flex: 1;
+  }
+
+  .row {
+    flex-wrap: wrap;
+  }
+
+  /* Seven columns don't fit a phone, so each transcript row becomes a card and sorting moves to a select. */
+  .transcript-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .transcript-toolbar .toolbar-sort {
+    display: block;
+  }
+  .transcript-toolbar .toolbar-clear {
+    grid-column: 1 / -1;
+  }
+  .transcripts-table,
+  .transcripts-table tbody {
+    display: block;
+  }
+  .transcripts-table thead,
+  .transcripts-table colgroup {
+    display: none;
+  }
+  .transcripts-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 10px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .transcripts-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .transcripts-table td {
+    display: block;
+    padding: 0;
+    border: none;
+  }
+  /* Basis leaves exactly the date beside the name, so outcome/length/caller wrap to line two. */
+  .transcripts-table td.col-business {
+    order: 1;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .transcripts-table td.col-when {
+    order: 2;
+    font-size: 12px;
+  }
+  /* Forced line break: only the name and date share line one. */
+  .transcripts-table tbody tr::after {
+    content: '';
+    order: 3;
+    flex-basis: 100%;
+    height: 0;
+    margin-top: -6px;
+  }
+  .transcripts-table td.col-outcome {
+    order: 4;
+  }
+  .transcripts-table td.col-length,
+  .transcripts-table td.col-caller {
+    order: 5;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .transcripts-table td.col-attempt,
+  .transcripts-table td.col-outcome.is-empty {
+    display: none;
+  }
+  .transcripts-table td.col-said {
+    order: 6;
+    flex-basis: 100%;
+  }
+  .transcripts-table tr.skeleton-row td {
+    flex-basis: 100%;
+  }
+  /* Seven dense columns: the table scrolls sideways inside its card, never the page. */
+  .callbacks-wrap {
+    overflow-x: auto;
+  }
+  .callbacks-table {
+    min-width: 900px;
+  }
+  .kv {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+}
