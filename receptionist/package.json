@@ -1,0 +1,17 @@
+{
+  "name": "dialdesk-receptionist",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Inbound AI receptionist for dialdesk numbers: a Cloudflare Worker bridging Twilio Media Streams to Azure Voice Live",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "bundle": "wrangler deploy --dry-run --outdir dist",
+    "tail": "wrangler tail --format pretty",
+    "test": "node --test 'test/*.test.js'"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

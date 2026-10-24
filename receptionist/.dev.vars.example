@@ -1,0 +1,20 @@
+# Copy to .dev.vars for `wrangler dev`; in production set each one with `npx wrangler secret put <NAME>`.
+# Every value here is a placeholder.
+
+AZURE_VOICELIVE_ENDPOINT=https://your-resource.services.ai.azure.com/
+AZURE_VOICELIVE_API_KEY=replace-with-your-azure-key
+
+# Single-number mode (no ORG_CONFIG): the Twilio account whose number points at this worker.
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=replace-with-the-account-auth-token
+
+# Optional: a Discord channel webhook URL for missed-call, AI-call and text alerts.
+DISCORD_WEBHOOK_URL=
+
+# Same value as INBOUND_SHARED_SECRET in server/.env.
+INBOUND_SHARED_SECRET=replace-with-a-long-random-string
+# Signs the single-use media-stream tickets: openssl rand -hex 32
+TICKET_SECRET=replace-with-a-long-random-string
+
+# Optional, one entry per dialdesk workspace (see wrangler.toml for the shape).
+# ORG_CONFIG={"north":{"accountSid":"AC…","authToken":"…","clients":["jordan.acme"],"ownerName":"Jordan"}}

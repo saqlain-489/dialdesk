@@ -1,0 +1,46 @@
+name = "dialdesk-receptionist"
+main = "src/index.js"
+compatibility_date = "2025-08-01"
+workers_dev = true
+# Pin account_id = "<your account id>" here so a deploy fails if you are logged into another account.
+
+# Secrets (never in this file): AZURE_VOICELIVE_ENDPOINT, AZURE_VOICELIVE_API_KEY,
+# TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, DISCORD_WEBHOOK_URL,
+# INBOUND_SHARED_SECRET, TICKET_SECRET, and ORG_CONFIG once there are workspaces:
+#   {"north":{"accountSid":"AC…","authToken":"…","clients":["jordan.acme","sam.acme"],"ownerName":"Jordan"},
+#    "south":{"accountSid":"AC…","authToken":"…","clients":["alex.acme"],"ownerName":"Alex",
+#             "companyName":"Acme Co.","discordWebhookUrl":"…"}}
+# Keys are dialdesk workspace slugs; each number's webhooks go to /twilio/o/<slug>/<action>.
+# With ORG_CONFIG set, TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / INBOUND_CLIENTS are ignored and
+# the old /twilio/<action> URLs belong to LEGACY_ORG (set both together, or those calls 403).
+
+[vars]
+AZURE_VOICELIVE_MODEL = "gpt-4o-mini"
+AZURE_VOICELIVE_VOICE = "en-US-Ava:DragonHDLatestNeural"
+AZURE_VOICELIVE_API_VERSION = "2025-10-01"
+# Kill switch: "false" = every missed call gets a spoken "we'll call you back" instead of the AI.
+AI_ENABLED = "true"
+# Who the receptionist works for when ORG_CONFIG doesn't say.
+COMPANY_NAME = "Acme Co."
+OWNER_NAME = "Jordan"
+# Browser identities rung before the AI picks up. Must match dialdesk usernames exactly.
+INBOUND_CLIENTS = "jordan.acme"
+INBOUND_RING_SECONDS = "10"
+DIALDESK_URL = "https://dialdesk.example.com"
+PHONE_MAX_SECONDS = "300"
+PHONE_SILENCE_SECONDS = "30"
+PHONE_MAX_DAILY_SECONDS = "3600"
+PHONE_MAX_AI_PER_NUMBER_PER_DAY = "3"
+PHONE_MAX_CONCURRENT = "2"
+
+[[kv_namespaces]]
+binding = "RECEPTIONIST_KV"
+# npx wrangler kv namespace create RECEPTIONIST_KV, then paste the id here.
+id = "00000000000000000000000000000000"
+
+# Retries ingest deliveries that failed while the app server was asleep.
+[triggers]
+crons = ["*/5 * * * *"]
+
+[observability]
+enabled = true
