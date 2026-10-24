@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { OrgSetup } from '../types'
-import { useTwilioDevice } from '../hooks/useTwilioDevice'
+import { useDevice } from '../hooks/useDevice'
 import { PreflightPanel } from './PreflightPanel'
 import { TranscriberCheckPanel } from './TranscriberCheckPanel'
 import { TranscriptTestPanel } from './TranscriptTestPanel'
@@ -9,7 +9,7 @@ import { friendlyError } from '../lib/callErrors'
 import { canTranscribeHere, isPhoneOrTablet } from '../lib/platform'
 
 export function SetupView() {
-  const { runPreflight } = useTwilioDevice()
+  const { runPreflight } = useDevice()
   const [setup, setSetup] = useState<OrgSetup | null>(null)
   const [micState, setMicState] = useState<string>('unknown')
 

@@ -71,6 +71,11 @@ export default function App() {
     <div className="app">
       <div className="topbar">
         <h1>DialDesk</h1>
+        {__DEMO__ && (
+          <span className="badge purple demo-badge" title="Fictional data. No calls are placed and nothing leaves this browser.">
+            demo
+          </span>
+        )}
         {orgs.length > 1 && <WorkspaceSwitcher current={org} orgs={orgs} disabled={callBusy} />}
         <nav className="tabs">
           {tabs.map((t) => (

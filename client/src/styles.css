@@ -170,6 +170,9 @@ a {
   margin: 0;
   font-weight: 600;
 }
+.topbar .demo-badge {
+  margin-left: -8px;
+}
 .topbar .spacer {
   flex: 1;
 }
@@ -1175,6 +1178,7 @@ mark {
     padding-top: max(6px, env(safe-area-inset-top));
   }
   .topbar h1,
+  .topbar .demo-badge,
   .topbar .user-label,
   .topbar .spacer {
     display: none;

@@ -1,3 +1,4 @@
+import { createDemoApi } from './demo/api'
 import type {
   CallbackPage,
   CallbackQuery,
@@ -82,7 +83,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export const api = {
+const liveApi = {
   health: () => request<{ ok: boolean; publicUrl: string; callWindow: CallWindow }>('/api/health'),
 
   me: () => request<Session>('/api/auth/me'),
@@ -210,3 +211,8 @@ export const api = {
     return request<CallbackPage>(`/api/stats/callbacks?${qs}`)
   },
 }
+
+export type ApiClient = typeof liveApi
+
+// The demo build answers every call from in-memory fictional data; nothing reaches a server.
+export const api: ApiClient = __DEMO__ ? createDemoApi() : liveApi

@@ -142,7 +142,7 @@ const SHARED_OBJECTIONS: Objection[] = [
   },
   { they: 'How did you get my number?', you: ['From your public business listing.'] },
   { they: 'Send me an email', you: ["Happy to. What's the best address?", '(spell it back letter by letter)'] },
-  { they: 'Is this a robot?', you: ["No, I'm a real person: {caller}, with {company}."] },
+  { they: 'Is this a robot?', you: ["No, I'm a real person: {caller}, from {company}, calling about your website."] },
   { they: "I'm busy right now", you: ["I'll let you go. When is a better time today?", '(get a real time. "Later" is a no.)'] },
   { they: 'Take me off your list', you: ['Of course. Sorry to bother you.', '>>> Hang up and mark DO NOT CALL. No second try, ever. <<<'] },
 ]
@@ -202,6 +202,9 @@ export function spokenFirstName(ownerName: string | null): string | null {
   if (!first || !/^[A-Za-z][A-Za-z'-]+$/.test(first)) return null
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
 }
+
+// "Acme Co." already ends a sentence; another period would read "Acme Co..".
+const endSentence = (text: string) => (text.endsWith('.') ? text : `${text}.`)
 
 function hostOf(website: string | null): string {
   if (!website) return 'your website'
@@ -296,12 +299,12 @@ export function resolveScript(
   const greeting = c.first
     ? [`Hi, is this ${c.first}?`, `(wait for the yes. Unsure how to say "${c.first}"? Use: "Hi, am I speaking with the owner of ${c.business}?")`]
     : [`Hi, am I speaking with the owner of ${c.business}?`, '(wait for the yes)']
-  const intro = c.first ? `${c.first} … this is ${caller}, from ${company}.` : `This is ${caller}, from ${company}.`
+  const intro = c.first ? `${c.first} … this is ${caller}, from ${endSentence(company)}` : `This is ${caller}, from ${endSentence(company)}`
 
   let opener: string[]
   if (opts.mode === 'warm') {
     opener = [
-      `${hi}, it's ${caller}, from ${company}.`,
+      `${hi}, it's ${caller}, from ${endSentence(company)}`,
       '(they called us:) Returning your call. Thanks for calling back.',
       '(they asked us to call back:) You asked me to call back about now.',
       `I called you about ${about}.`,
@@ -336,13 +339,13 @@ export function resolveScript(
 
   const number = spokenNumber(opts.callbackNumber)
   const voicemail =
-    `${hi}, it's ${caller}, from ${company}. … ` +
+    `${hi}, it's ${caller}, from ${endSentence(company)} … ` +
     `I looked at ${about} today, and ${seg.voicemailProblem}. … ` +
     'I have one idea that could help. … ' +
     (number ? `Call me back at ${number}. Again: ${number}.` : 'Call me back at this number.')
 
   const gatekeeper = [
-    `Hi, this is ${caller}, from ${company}.`,
+    `Hi, this is ${caller}, from ${endSentence(company)}`,
     `I'm calling about ${about}. Who looks after that?`,
     `Is ${c.first ?? 'the owner'} around?`,
     "(not around:) When's a good time to catch them? Get a real time, or an email address.",

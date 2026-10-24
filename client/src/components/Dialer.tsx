@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useMicName } from '../hooks/useMicName'
-import { useTwilioDevice } from '../hooks/useTwilioDevice'
+import { useDevice } from '../hooks/useDevice'
 import { useResizableSidebar } from '../hooks/useResizableSidebar'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { canTranscribeHere, NARROW_QUERY } from '../lib/platform'
@@ -42,7 +42,7 @@ export function Dialer({ orgId, onCallActiveChange }: { orgId: string; onCallAct
   const dialerRef = useRef<HTMLDivElement>(null)
   const sidebar = useResizableSidebar(dialerRef)
 
-  const device = useTwilioDevice({ preload: canTranscribeHere, orgId })
+  const device = useDevice({ preload: canTranscribeHere, orgId })
   const micLabel = useMicName(device.callMic, device.phase)
   const activeLead = leads.find((l) => l.id === activeId) ?? null
 
