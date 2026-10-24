@@ -1,0 +1,43 @@
+{
+  "name": "dialdesk-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p test",
+    "test": "node --import tsx --test test/*.test.ts",
+    "set-password": "tsx src/scripts/setPassword.ts",
+    "org": "tsx src/scripts/org.ts",
+    "migrate:tenancy": "tsx src/scripts/migrateTenancy.ts",
+    "sync:dnc": "tsx src/scripts/syncDnc.ts",
+    "push:lead-context": "tsx src/scripts/pushLeadContext.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "csv-parse": "^5.6.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "libphonenumber-js": "^1.11.17",
+    "mongoose": "^8.9.5",
+    "multer": "^1.4.5-lts.1",
+    "twilio": "^5.4.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.6",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

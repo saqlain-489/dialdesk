@@ -1,0 +1,23 @@
+{
+  "name": "dialdesk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser softphone and call CRM for small sales teams, with in-browser transcription and an AI receptionist",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install && npm --prefix receptionist install",
+    "demo": "npm --prefix client run demo",
+    "build:demo": "npm --prefix client run build:demo",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck",
+    "test": "npm --prefix server test && npm --prefix receptionist test",
+    "build": "npm --prefix client install --include=dev && npm --prefix client run build && npm --prefix server install --include=dev && npm --prefix server run build",
+    "start": "npm --prefix server run start",
+    "sync:dnc": "npm --prefix server run sync:dnc",
+    "push:lead-context": "npm --prefix server run push:lead-context"
+  }
+}
